@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Timestamp Generator</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #0a0a0f;
+        --surface: #13131a;
+        --border: #2a2a3a;
+        --accent: #7c5cfc;
+        --accent2: #fc5c7c;
+        --text: #e8e8f0;
+        --mono: "JetBrains Mono", monospace;
+        --display: "Syne", sans-serif;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--mono);
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(
+            ellipse 60% 40% at 20% 20%,
+            rgba(124, 92, 252, 0.12) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse 50% 35% at 80% 80%,
+            rgba(252, 92, 124, 0.1) 0%,
+            transparent 60%
+          );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* ── TOP: fixed, never moves ── */
+      .top-panel {
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.2rem;
+        padding: 2.5rem 2rem 1.5rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      h1 {
+        font-family: var(--display);
+        font-size: clamp(1.4rem, 4vw, 2rem);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: var(--text);
+        text-align: center;
+      }
+
+      h1 span {
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      #clock {
+        font-size: 0.78rem;
+        color: #606080;
+        letter-spacing: 0.08em;
+      }
+
+      .btn-row {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .btn {
+        padding: 0.6rem 1.4rem;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--mono);
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        border-radius: 6px;
+        cursor: pointer;
+        transition:
+          border-color 0.18s,
+          transform 0.12s;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        opacity: 0;
+        transition: opacity 0.18s;
+      }
+
+      .btn:hover {
+        border-color: var(--accent);
+        transform: translateY(-2px);
+      }
+      .btn:hover::after {
+        opacity: 0.1;
+      }
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn.all {
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+        border-color: transparent;
+        color: #fff;
+      }
+      .btn.all:hover::after {
+        display: none;
+      }
+
+      /* divider */
+      .divider {
+        flex-shrink: 0;
+        width: 100%;
+        height: 1px;
+        background: var(--border);
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ── BOTTOM: scrollable list ── */
+      .bottom-panel {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1.2rem 2rem 1rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .output-area {
+        width: 100%;
+        max-width: 560px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 6px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+      }
+
+      .output-area::-webkit-scrollbar {
+        width: 4px;
+      }
+      .output-area::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 4px;
+      }
+
+      .result-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.85rem 1.1rem;
+        gap: 1rem;
+        animation: fadeIn 0.22s ease;
+        transition: border-color 0.18s;
+        flex-shrink: 0;
+      }
+
+      .result-item:hover {
+        border-color: var(--accent);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .result-text {
+        font-size: 0.9rem;
+        letter-spacing: 0.03em;
+        color: var(--text);
+        flex: 1;
+        word-break: break-all;
+      }
+
+      .result-text .prefix {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .result-text .sep {
+        color: #505070;
+      }
+      .result-text .date {
+        color: #a0a0c0;
+      }
+      .result-text .time {
+        color: var(--accent2);
+      }
+
+      .copy-btn {
+        background: none;
+        border: 1px solid var(--border);
+        color: #606080;
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        padding: 0.3rem 0.65rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition:
+          border-color 0.15s,
+          color 0.15s;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .copy-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .copy-btn.copied {
+        border-color: #3ecf8e;
+        color: #3ecf8e;
+      }
+
+      .empty {
+        text-align: center;
+        color: #404060;
+        font-size: 0.8rem;
+        padding: 2rem 0;
+      }
+
+      /* ── Footer bar: clear + countdown ── */
+      .footer {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.2rem;
+        padding: 0.75rem 2rem 1.2rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .clear-btn {
+        font-size: 0.72rem;
+        color: #404060;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: var(--mono);
+        text-decoration: underline;
+        transition: color 0.15s;
+      }
+      .clear-btn:hover {
+        color: var(--accent2);
+      }
+
+      #countdown {
+        font-size: 0.68rem;
+        color: #404060;
+        letter-spacing: 0.06em;
+        min-width: 7ch;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- TOP: fixed area -->
+    <div class="top-panel">
+      <h1>Timestamp <span>Generator</span></h1>
+      <div id="clock">--:--:--</div>
+      <div class="btn-row">
+        <button class="btn" onclick="generate('Test')">Test</button>
+        <button class="btn" onclick="generate('Help')">Help</button>
+        <button class="btn" onclick="generate('Resolved')">Resolved</button>
+        <button class="btn all" onclick="generateAll()">Generate All</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- BOTTOM: scrollable list -->
+    <div class="bottom-panel">
+      <div class="output-area" id="output">
+        <div class="empty">Nhấn nút để tạo chuỗi ký tự</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <button class="clear-btn" onclick="clearAll()">Xoá tất cả</button>
+      <div id="countdown"></div>
+    </div>
+
+    <script>
+      // Live clock
+      function updateClock() {
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, "0");
+        const mm = String(now.getMinutes()).padStart(2, "0");
+        const ss = String(now.getSeconds()).padStart(2, "0");
+        document.getElementById("clock").textContent = `${hh}:${mm}:${ss}`;
+      }
+      setInterval(updateClock, 1000);
+      updateClock();
+
+      function getTimestamp() {
+        const now = new Date();
+        const dd = String(now.getDate()).padStart(2, "0");
+        const mo = String(now.getMonth() + 1).padStart(2, "0");
+        const yyyy = now.getFullYear();
+        const hh = String(now.getHours()).padStart(2, "0");
+        const mm = String(now.getMinutes()).padStart(2, "0");
+        return { date: `${dd}-${mo}-${yyyy}`, time: `${hh}:${mm}` };
+      }
+
+      function generate(prefix) {
+        const { date, time } = getTimestamp();
+        const str = `${prefix}_${date}_${time}`;
+        addResult(prefix, date, time, str);
+        resetAutoClear();
+      }
+
+      function generateAll() {
+        ["Test", "Help", "Resolved"].forEach((p) => generate(p));
+      }
+
+      function addResult(prefix, date, time, full) {
+        const output = document.getElementById("output");
+        const empty = output.querySelector(".empty");
+        if (empty) empty.remove();
+
+        const item = document.createElement("div");
+        item.className = "result-item";
+        item.innerHTML = `
+          <div class="result-text">
+            <span class="prefix">${prefix}</span><span class="sep">_</span><span class="date">${date}</span><span class="sep">_</span><span class="time">${time}</span>
+          </div>
+          <button class="copy-btn" onclick="copyText(this, '${full}')">Copy</button>
+        `;
+        output.prepend(item);
+      }
+
+      // Auto-clear after 30s
+      let autoClearTimer = null;
+      let countdownInterval = null;
+      const CLEAR_DELAY = 30 * 1000;
+
+      function resetAutoClear() {
+        clearTimeout(autoClearTimer);
+        clearInterval(countdownInterval);
+
+        let remaining = CLEAR_DELAY / 1000;
+        updateCountdown(remaining);
+
+        countdownInterval = setInterval(() => {
+          remaining--;
+          updateCountdown(remaining);
+          if (remaining <= 0) clearInterval(countdownInterval);
+        }, 1000);
+
+        autoClearTimer = setTimeout(() => clearAll(true), CLEAR_DELAY);
+      }
+
+      function updateCountdown(sec) {
+        const el = document.getElementById("countdown");
+        if (!el) return;
+        if (sec <= 0) {
+          el.textContent = "";
+          return;
+        }
+        const s = String(sec).padStart(2, "0");
+        el.textContent = `Tự động xoá toàn bộ sau 00:${s}`;
+      }
+
+      function copyText(btn, text) {
+        navigator.clipboard.writeText(text).then(() => {
+          btn.textContent = "Copied!";
+          btn.classList.add("copied");
+          setTimeout(() => {
+            btn.textContent = "Copy";
+            btn.classList.remove("copied");
+          }, 1500);
+        });
+      }
+
+      function clearAll(auto = false) {
+        clearTimeout(autoClearTimer);
+        clearInterval(countdownInterval);
+        const output = document.getElementById("output");
+        output.innerHTML =
+          '<div class="empty">Nhấn nút để tạo chuỗi ký tự</div>';
+        updateCountdown(0);
+      }
+    </script>
+  </body>
+</html>
