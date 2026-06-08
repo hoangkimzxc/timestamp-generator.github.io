@@ -24,8 +24,19 @@
         --accent: #7c5cfc;
         --accent2: #fc5c7c;
         --text: #e8e8f0;
+        --muted: #606080;
         --mono: "JetBrains Mono", monospace;
         --display: "Syne", sans-serif;
+      }
+
+      :root.light {
+        --bg: #f4f3ff;
+        --surface: #ffffff;
+        --border: #ddd8fb;
+        --accent: #6040e8;
+        --accent2: #e8305a;
+        --text: #1a1530;
+        --muted: #8880aa;
       }
 
       html,
@@ -41,25 +52,44 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        transition: background 0.25s, color 0.25s;
       }
+
+      /* ── Theme toggle ── */
+      .theme-toggle {
+        position: absolute;
+        top: 1.2rem;
+        right: 1.4rem;
+        z-index: 10;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 0.3rem 0.75rem;
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        color: var(--muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: border-color 0.18s, color 0.18s, background 0.25s;
+        letter-spacing: 0.04em;
+      }
+
+      .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+      .theme-toggle .icon { font-size: 0.9rem; line-height: 1; }
 
       body::before {
         content: "";
         position: fixed;
         inset: 0;
         background:
-          radial-gradient(
-            ellipse 60% 40% at 20% 20%,
-            rgba(124, 92, 252, 0.12) 0%,
-            transparent 60%
-          ),
-          radial-gradient(
-            ellipse 50% 35% at 80% 80%,
-            rgba(252, 92, 124, 0.1) 0%,
-            transparent 60%
-          );
+          radial-gradient(ellipse 60% 40% at 20% 20%, rgba(124,92,252,0.10) 0%, transparent 60%),
+          radial-gradient(ellipse 50% 35% at 80% 80%, rgba(252,92,124,0.08) 0%, transparent 60%);
         pointer-events: none;
         z-index: 0;
+        transition: opacity 0.3s;
       }
 
       /* ── TOP: fixed, never moves ── */
@@ -92,7 +122,7 @@
 
       #clock {
         font-size: 0.78rem;
-        color: #606080;
+        color: var(--muted);
         letter-spacing: 0.08em;
       }
 
@@ -203,7 +233,7 @@
         padding: 0.85rem 1.1rem;
         gap: 1rem;
         animation: fadeIn 0.22s ease;
-        transition: border-color 0.18s;
+        transition: border-color 0.18s, background 0.25s;
         flex-shrink: 0;
       }
 
@@ -234,9 +264,7 @@
         color: var(--accent);
         font-weight: 700;
       }
-      .result-text .sep {
-        color: #505070;
-      }
+      .result-text .sep { color: var(--muted); }
       .result-text .date {
         color: #a0a0c0;
       }
@@ -247,15 +275,13 @@
       .copy-btn {
         background: none;
         border: 1px solid var(--border);
-        color: #606080;
+        color: var(--muted);
         font-family: var(--mono);
         font-size: 0.7rem;
         padding: 0.3rem 0.65rem;
         border-radius: 4px;
         cursor: pointer;
-        transition:
-          border-color 0.15s,
-          color 0.15s;
+        transition: border-color 0.15s, color 0.15s;
         white-space: nowrap;
         flex-shrink: 0;
       }
@@ -271,9 +297,10 @@
 
       .empty {
         text-align: center;
-        color: #404060;
+        color: var(--muted);
         font-size: 0.8rem;
         padding: 2rem 0;
+        opacity: 0.6;
       }
 
       /* ── Footer bar: clear + countdown ── */
@@ -290,23 +317,26 @@
 
       .clear-btn {
         font-size: 0.72rem;
-        color: #404060;
+        color: var(--muted);
         background: none;
         border: none;
         cursor: pointer;
         font-family: var(--mono);
         text-decoration: underline;
         transition: color 0.15s;
+        opacity: 0.7;
       }
       .clear-btn:hover {
         color: var(--accent2);
+        opacity: 1;
       }
 
       #countdown {
         font-size: 0.68rem;
-        color: #404060;
+        color: var(--muted);
         letter-spacing: 0.06em;
         min-width: 7ch;
+        opacity: 0.7;
       }
 
       /* ── Custom input row ── */
@@ -335,7 +365,7 @@
         transition: border-color 0.18s;
       }
 
-      .custom-input::placeholder { color: #404060; }
+      .custom-input::placeholder { color: var(--muted); opacity: 0.6; }
       .custom-input:focus { border-color: var(--accent); }
 
       .btn-custom {
@@ -371,6 +401,9 @@
   <body>
     <!-- TOP: fixed area -->
     <div class="top-panel">
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+        <span class="icon">🌙</span><span id="themeLabel">Dark</span>
+      </button>
       <h1>Timestamp <span>Generator</span></h1>
       <div id="clock">--:--:--</div>
       <div class="btn-row">
@@ -409,6 +442,18 @@
     </div>
 
     <script>
+      // Theme toggle
+      let isLight = false;
+      function toggleTheme() {
+        isLight = !isLight;
+        document.documentElement.classList.toggle('light', isLight);
+        const btn = document.getElementById('themeToggle');
+        const icon = btn.querySelector('.icon');
+        const label = document.getElementById('themeLabel');
+        icon.textContent = isLight ? '☀️' : '🌙';
+        label.textContent = isLight ? 'Light' : 'Dark';
+      }
+
       // Live clock
       function updateClock() {
         const now = new Date();
