@@ -308,6 +308,64 @@
         letter-spacing: 0.06em;
         min-width: 7ch;
       }
+
+      /* ── Custom input row ── */
+      .custom-row {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .custom-input {
+        flex: 1;
+        max-width: 340px;
+        padding: 0.55rem 0.9rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text);
+        font-family: var(--mono);
+        font-size: 0.85rem;
+        outline: none;
+        transition: border-color 0.18s;
+      }
+
+      .custom-input::placeholder { color: #404060; }
+      .custom-input:focus { border-color: var(--accent); }
+
+      .btn-custom {
+        padding: 0.55rem 1.1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-family: var(--mono);
+        font-size: 0.85rem;
+        font-weight: 700;
+        border-radius: 6px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: border-color 0.18s, transform 0.12s;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn-custom::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        opacity: 0;
+        transition: opacity 0.18s;
+      }
+
+      .btn-custom:hover { border-color: var(--accent); transform: translateY(-2px); }
+      .btn-custom:hover::after { opacity: 0.1; }
+      .btn-custom:active { transform: translateY(0); }
     </style>
   </head>
   <body>
@@ -325,7 +383,19 @@
 
     <div class="divider"></div>
 
-    <!-- BOTTOM: scrollable list -->
+    <!-- Custom input -->
+    <div class="custom-row">
+      <input
+        class="custom-input"
+        id="customInput"
+        type="text"
+        placeholder="Nhập ký tự bất kỳ..."
+        onkeydown="if(event.key==='Enter') generateCustom()"
+      />
+      <button class="btn-custom" onclick="generateCustom()">Gen</button>
+    </div>
+
+    <div class="divider"></div>
     <div class="bottom-panel">
       <div class="output-area" id="output">
         <div class="empty">Nhấn nút để tạo chuỗi ký tự</div>
@@ -358,6 +428,15 @@
         const hh = String(now.getHours()).padStart(2, "0");
         const mm = String(now.getMinutes()).padStart(2, "0");
         return { date: `${dd}-${mo}-${yyyy}`, time: `${hh}:${mm}` };
+      }
+
+      function generateCustom() {
+        const input = document.getElementById("customInput");
+        const val = input.value.trim();
+        if (!val) { input.focus(); return; }
+        generate(val);
+        input.value = "";
+        input.focus();
       }
 
       function generate(prefix) {
