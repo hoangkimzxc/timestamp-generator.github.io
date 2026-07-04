@@ -473,7 +473,8 @@
         const yyyy = now.getFullYear();
         const hh = String(now.getHours()).padStart(2, "0");
         const mm = String(now.getMinutes()).padStart(2, "0");
-        return { date: `${dd}-${mo}-${yyyy}`, time: `${hh}:${mm}` };
+        const ss = String(now.getSeconds()).padStart(2, "0");
+        return { date: `${dd}-${mo}-${yyyy}`, time: `${hh}:${mm}:${ss}` };
       }
 
       function generateCustom() {
